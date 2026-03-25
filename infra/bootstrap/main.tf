@@ -103,7 +103,7 @@ resource "aws_s3_bucket_public_access_block" "terraform_state" {
 }
 
 # =============================================================================
-# DynamoDB para el bloqueo del estado
+# DynamoDB para el bloqueo del estado ya no se usa para el locking YA NO SE DEBERIA CREA UN RECURSO dynamodb_table
 # =============================================================================
 
 resource "aws_dynamodb_table" "terraform_locks" {

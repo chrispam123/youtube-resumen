@@ -1,0 +1,36 @@
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+dist/
+.pytest_cache/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+# Los .tfvars pueden contener valores sensibles.
+# Los de ejemplo (.tfvars.example) SÍ van al repo, los reales NO.
+*.tfvars
+!*.tfvars.example
+
+# AWS y credenciales — nunca, jamás
+.env
+.env.*
+*.pem
+*credentials*
+
+# Editores e IDEs
+.DS_Store
+.idea/
+.vscode/
+*.swp
+

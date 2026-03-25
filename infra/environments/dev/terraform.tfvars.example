@@ -1,0 +1,4 @@
+aws_region       = "eu-west-1"
+environment      = "dev"
+project_name     = "yt-summarizer"
+state_bucket_arn = "arn:aws:s3:::yt-summarizer-tfstate-TU_ACCOUNT_ID"

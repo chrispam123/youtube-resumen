@@ -1,0 +1,23 @@
+[tool.ruff]
+# Versión de Python objetivo
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+# E y W: errores y warnings de pycodestyle (equivalente a flake8)
+# F: errores de pyflakes (imports no usados, variables no definidas)
+# I: orden de imports (equivalente a isort)
+# UP: modernización de código Python (uso de sintaxis nueva)
+select = ["E", "W", "F", "I", "UP"]
+ignore = [
+  "E501",  # líneas largas — ruff-format ya se encarga de esto
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["lambda", "fargate"]
+
+[tool.pytest.ini_options]
+testpaths = ["backend"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]

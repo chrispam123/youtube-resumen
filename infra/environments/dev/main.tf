@@ -85,6 +85,7 @@ module "compute" {
   project_name                = var.project_name
   environment                 = var.environment
   aws_region                  = var.aws_region
+  subnet_ids                  = var.subnet_ids
   aws_account_id              = data.aws_caller_identity.current.account_id
   lambda_execution_role_arn   = module.iam.lambda_execution_role_arn
   fargate_execution_role_arn  = module.iam.fargate_execution_role_arn
@@ -93,4 +94,5 @@ module "compute" {
   results_bucket_name         = module.storage.results_bucket_name
   api_gateway_id              = module.networking.api_gateway_id
   api_gateway_arn             = module.networking.api_gateway_arn
+
 }

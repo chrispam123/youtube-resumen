@@ -20,3 +20,7 @@ variable "state_bucket_arn" {
   description = "ARN del bucket S3 del estado de Terraform"
   type        = string
 }
+variable "subnet_ids" {
+  description = "IDs de las subnets donde Fargate lanzará las tareas, separados por coma"
+  type        = string
+}

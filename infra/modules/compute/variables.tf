@@ -61,3 +61,8 @@ variable "fargate_memory" {
   type        = number
   default     = 1024
 }
+
+variable "subnet_ids" {
+  description = "Subnets para las tareas Fargate"
+  type        = string
+}

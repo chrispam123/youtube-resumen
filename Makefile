@@ -36,7 +36,7 @@ $(VENV)/bin/activate: ## Crea el entorno virtual si no existe
 
 setup: $(VENV)/bin/activate ## Instala todas las dependencias y configura pre-commit
 	$(PIP_COMPILE) requirements-dev.in -o requirements-dev.txt
-	$(PIP_COMPILE) backend/lambda/requirements.in -o backend/lambda/requirements.txt
+	$(PIP_COMPILE) backend/handlers/requirements.in -o backend/handlers/requirements.txt
 	$(PIP_COMPILE) backend/fargate/requirements.in -o backend/fargate/requirements.txt
 	$(PIP_SYNC) requirements-dev.txt
 	$(VENV)/bin/pre-commit install
@@ -45,7 +45,7 @@ setup: $(VENV)/bin/activate ## Instala todas las dependencias y configura pre-co
 
 compile-deps: $(VENV)/bin/activate ## Regenera todos los requirements.txt desde los .in
 	$(PIP_COMPILE) requirements-dev.in -o requirements-dev.txt
-	$(PIP_COMPILE) backend/lambda/requirements.in -o backend/lambda/requirements.txt
+	$(PIP_COMPILE) backend/handlers/requirements.in -o backend/handlers/requirements.txt
 	$(PIP_COMPILE) backend/fargate/requirements.in -o backend/fargate/requirements.txt
 	@echo "✓ Dependencias compiladas. Ejecuta 'make sync-deps' para instalarlas."
 
@@ -105,6 +105,27 @@ docker-build: ## Construye la imagen del contenedor Fargate localmente
 docker-push: ## Sube la imagen a ECR (requiere credenciales AWS configuradas)
 	@echo "Usa el pipeline de CD para push a ECR en producción."
 	@echo "Para dev: configura ECR_URI en tu entorno y ejecuta manualmente."
+
+lambda-package: $(VENV)/bin/activate ## Empaqueta el código Lambda en un ZIP para el deploy
+	@echo "Empaquetando Lambda..."
+	rm -rf backend/handlers/package backend/handlers/lambda.zip
+	$(PIP) install -r backend/handlers/requirements.in \
+		-t backend/handlers/package/ --quiet
+	cp backend/handlers/src/*.py backend/handlers/package/
+	cd backend/handlers/package && zip -r ../lambda.zip . \
+		-x "*.pyc" -x "*__pycache__*"
+	@echo "✓ Lambda empaquetada en backend/handlers/lambda.zip"
+
+lambda-deploy: lambda-package ## Despliega el código Lambda a AWS
+	aws lambda update-function-code \
+		--function-name yt-summarizer-analyze-dev \
+		--zip-file fileb://backend/handlers/lambda.zip \
+		--profile dev
+	aws lambda update-function-code \
+		--function-name yt-summarizer-status-dev \
+		--zip-file fileb://backend/handlers/lambda.zip \
+		--profile dev
+	@echo "✓ Lambda desplegada"
 
 # =============================================================================
 # Limpieza

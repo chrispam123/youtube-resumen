@@ -137,7 +137,7 @@ resource "aws_iam_policy" "dev_data" {
         Sid      = "BedrockClaudeHaiku"
         Effect   = "Allow"
         Action   = ["bedrock:InvokeModel"]
-        Resource = "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-haiku*"
+        Resource = "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-3-haiku*"
       }
     ]
   })
@@ -371,7 +371,7 @@ resource "aws_iam_role_policy" "fargate_execution" {
         Sid      = "BedrockInvokeHaiku"
         Effect   = "Allow"
         Action   = ["bedrock:InvokeModel"]
-        Resource = "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-haiku*"
+        Resource = "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-3-haiku*"
       }
       # Nota: Fargate NO tiene permisos para lanzar nuevas tareas ECS.
       # Esto limita el blast radius si el contenedor es comprometido.

@@ -82,7 +82,11 @@ resource "aws_ecs_task_definition" "processor" {
         { name = "DYNAMODB_TABLE", value = var.dynamodb_jobs_table_name },
         { name = "RESULTS_BUCKET", value = var.results_bucket_name },
         { name = "AWS_REGION", value = var.aws_region },
-        { name = "BEDROCK_MODEL_ID", value = "anthropic.claude-haiku-20240307-v1:0" }
+        { name = "YOUTUBE_SECRET_NAME", value = "/app/youtube-api-key" },
+        { name = "SUPADATA_SECRET_NAME", value = "/app/supadata-api-key" },
+        # NUEVAS VARIABLES PARA GEMINI:
+        { name = "GEMINI_SECRET_NAME", value = "/app/gemini-api-key" },
+        { name = "GEMINI_MODEL_ID", value = "gemini-2.5-flash" }
       ]
 
       logConfiguration = {

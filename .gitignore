@@ -51,3 +51,9 @@ crash.log
 #lambda
 backend/lambda/package/
 backend/lambda/lambda.zip
+# Artefactos de pruebas locales
+resumen.json
+status.json
+*.json
+!backend/**/*.json
+!frontend/**/*.json

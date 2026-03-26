@@ -100,7 +100,7 @@ tf-destroy: ## Destruye la infraestructura del entorno (solo dev)
 # =============================================================================
 
 docker-build: ## Construye la imagen del contenedor Fargate localmente
-	docker build -t yt-processor:local backend/fargate/
+		docker build -t yt-processor:local -f backend/fargate/Dockerfile backend/fargate/
 
 docker-push: ## Sube la imagen a ECR (requiere credenciales AWS configuradas)
 	@echo "Usa el pipeline de CD para push a ECR en producción."

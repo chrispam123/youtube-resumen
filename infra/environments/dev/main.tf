@@ -55,3 +55,42 @@ module "iam" {
   aws_region       = var.aws_region
   state_bucket_arn = var.state_bucket_arn
 }
+# Añade al final de infra/environments/dev/main.tf
+
+module "storage" {
+  source = "../../modules/storage"
+
+  project_name           = var.project_name
+  environment            = var.environment
+  aws_region             = var.aws_region
+  aws_account_id         = data.aws_caller_identity.current.account_id
+  results_retention_days = 7
+  jobs_ttl_hours         = 24
+}
+
+module "networking" {
+  source = "../../modules/networking"
+
+  project_name        = var.project_name
+  environment         = var.environment
+  aws_region          = var.aws_region
+  aws_account_id      = data.aws_caller_identity.current.account_id
+  frontend_bucket_id  = module.storage.frontend_bucket_id
+  frontend_bucket_arn = module.storage.frontend_bucket_arn
+}
+
+module "compute" {
+  source = "../../modules/compute"
+
+  project_name                = var.project_name
+  environment                 = var.environment
+  aws_region                  = var.aws_region
+  aws_account_id              = data.aws_caller_identity.current.account_id
+  lambda_execution_role_arn   = module.iam.lambda_execution_role_arn
+  fargate_execution_role_arn  = module.iam.fargate_execution_role_arn
+  fargate_execution_role_name = module.iam.fargate_execution_role_name
+  dynamodb_jobs_table_name    = module.storage.dynamodb_jobs_table_name
+  results_bucket_name         = module.storage.results_bucket_name
+  api_gateway_id              = module.networking.api_gateway_id
+  api_gateway_arn             = module.networking.api_gateway_arn
+}

@@ -11,6 +11,16 @@ dist/
 # Node
 node_modules/
 frontend/dist/
+# Tests y cobertura
+.coverage
+coverage.xml
+htmlcov/
+# Directorios de empaquetado Lambda
+backend/handlers/package/
+backend/handlers/lambda.zip
+
+# Artefactos de invocación Lambda local
+response.json
 
 # Terraform
 **/.terraform/
@@ -38,3 +48,6 @@ frontend/dist/
 crash.log
 # Ignorar archivos comprimidos generados
 *.zip
+#lambda
+backend/lambda/package/
+backend/lambda/lambda.zip

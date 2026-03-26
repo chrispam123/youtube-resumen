@@ -145,6 +145,7 @@ resource "aws_lambda_function" "analyze" {
       ECS_TASK_DEFINITION = aws_ecs_task_definition.processor.family
       FARGATE_ROLE_ARN    = var.fargate_execution_role_arn
       AWS_ACCOUNT_ID      = var.aws_account_id
+      SUBNET_IDS          = var.subnet_ids # añadida
     }
   }
 

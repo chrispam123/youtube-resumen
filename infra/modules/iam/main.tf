@@ -179,7 +179,33 @@ resource "aws_iam_policy" "dev_network_obs" {
             "iam:PassedToService" = ["lambda.amazonaws.com", "ecs-tasks.amazonaws.com"]
           }
         }
+      },
+
+      # IAM: lectura de roles del proyecto para que Terraform pueda
+      # verificar el estado actual durante plan y apply.
+      # Solo lectura — no permite crear, modificar ni borrar roles.
+      {
+        Sid    = "IAMReadProjectRoles"
+        Effect = "Allow"
+        Action = [
+          "iam:GetRole",
+          "iam:GetRolePolicy",
+          "iam:ListRolePolicies",
+          "iam:ListAttachedRolePolicies",
+          "iam:GetUser",
+          "iam:GetUserPolicy",
+          "iam:ListAttachedUserPolicies",
+          "iam:ListUserPolicies",
+          "iam:GetPolicy",
+          "iam:GetPolicyVersion"
+        ]
+        Resource = [
+          "arn:aws:iam::${var.aws_account_id}:role/${var.project_name}-*",
+          "arn:aws:iam::${var.aws_account_id}:user/${var.project_name}-*",
+          "arn:aws:iam::${var.aws_account_id}:policy/${var.project_name}-*"
+        ]
       }
+
     ]
   })
 }

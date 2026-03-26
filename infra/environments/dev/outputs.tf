@@ -30,3 +30,24 @@ output "fargate_execution_role_arn" {
   description = "ARN del rol de ejecución de Fargate"
   value       = module.iam.fargate_execution_role_arn
 }
+# Añade al final de infra/environments/dev/outputs.tf
+
+output "cloudfront_domain_name" {
+  description = "URL pública de la aplicación"
+  value       = module.networking.cloudfront_domain_name
+}
+
+output "cloudfront_distribution_id" {
+  description = "ID de CloudFront para invalidaciones de caché"
+  value       = module.networking.cloudfront_distribution_id
+}
+
+output "ecr_repository_url" {
+  description = "URL de ECR para push de imágenes Docker"
+  value       = module.compute.ecr_repository_url
+}
+
+output "api_gateway_endpoint" {
+  description = "Endpoint directo de API Gateway"
+  value       = module.networking.api_gateway_endpoint
+}

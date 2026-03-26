@@ -34,3 +34,7 @@ frontend/dist/
 .vscode/
 *.swp
 
+# Ignorar archivos de registro de errores
+crash.log
+# Ignorar archivos comprimidos generados
+*.zip

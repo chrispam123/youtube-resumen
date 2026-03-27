@@ -34,6 +34,12 @@ jobs:
           cd infra/environments/dev
           terraform init
           terraform apply -auto-approve
+        env:
+      # Sustituye los valores por tus datos reales (los que tienes en tu .tfvars local)
+           TF_VAR_state_bucket_arn:  "arn:aws:s3:::yt-summarizer-tfstate-668449743330"
+           TF_VAR_subnet_ids:        "subnet-07bc23243ddb43885,subnet-0d64d11cc5322779c,subnet-0bfa4ad4894e2e8d5"
+           TF_VAR_environment: "dev"
+           TF_VAR_project_name: "yt-summarizer"
 
       # 2. Desplegar Backend (Lambda)
       - name: Setup Python

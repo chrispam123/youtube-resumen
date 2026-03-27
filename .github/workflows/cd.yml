@@ -50,7 +50,7 @@ jobs:
       - name: Deploy Lambdas
         run: |
           # Usamos el comando del Makefile que ya creamos
-          make lambda-deploy
+          make lambda-deploy PROFILE=""
         env:
           AWS_PAGER: ""
 

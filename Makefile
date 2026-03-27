@@ -15,7 +15,8 @@ PIP_SYNC := $(VENV)/bin/pip-sync
 
 # Variable de entorno para los targets de Terraform
 ENV ?= dev
-
+PROFILE ?= dev
+AWS_FLAGS := $(if $(PROFILE),--profile $(PROFILE),)
 # =============================================================================
 # Target por defecto — se ejecuta si llamas a 'make' sin argumentos
 # =============================================================================
@@ -120,11 +121,11 @@ lambda-deploy: lambda-package ## Despliega el código Lambda a AWS
 	aws lambda update-function-code \
 		--function-name yt-summarizer-analyze-dev \
 		--zip-file fileb://backend/handlers/lambda.zip \
-		--profile dev
+		$(AWS_FLAGS)
 	aws lambda update-function-code \
 		--function-name yt-summarizer-status-dev \
 		--zip-file fileb://backend/handlers/lambda.zip \
-		--profile dev
+		$(AWS_FLAGS)
 	@echo "✓ Lambda desplegada"
 
 # =============================================================================

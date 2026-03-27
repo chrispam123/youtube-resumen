@@ -29,11 +29,6 @@ resource "aws_iam_access_key" "dev" {
   user = aws_iam_user.dev.name
 }
 
-# Política de mínimo privilegio para el usuario de desarrollo.
-# Nota sobre el diseño: en lugar de adjuntar políticas AWS predefinidas
-# (como AmazonS3FullAccess), creamos políticas personalizadas que restringen
-# el acceso solo a los recursos de este proyecto específico.
-# Esto significa más código pero una postura de seguridad mucho más sólida.
 # Política para S3: acceso a buckets del proyecto y al estado de Terraform
 resource "aws_iam_policy" "dev_s3" {
   name        = "${var.project_name}-dev-s3-${var.environment}"
@@ -45,16 +40,27 @@ resource "aws_iam_policy" "dev_s3" {
       {
         Sid    = "S3ProjectBuckets"
         Effect = "Allow"
-        Action = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket"]
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:DeleteObject",
+          "s3:ListBucket",
+          "s3:GetBucketPolicy" # Necesario para refresh de Terraform
+        ]
         Resource = [
           "arn:aws:s3:::${var.project_name}-*",
           "arn:aws:s3:::${var.project_name}-*/*"
         ]
       },
       {
-        Sid      = "S3TerraformState"
-        Effect   = "Allow"
-        Action   = ["s3:GetObject", "s3:PutObject", "s3:ListBucket"]
+        Sid    = "S3TerraformState"
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject",
+          "s3:ListBucket",
+          "s3:GetBucketPolicy" # Necesario para refresh de Terraform
+        ]
         Resource = [var.state_bucket_arn, "${var.state_bucket_arn}/*"]
       }
     ]
@@ -73,10 +79,14 @@ resource "aws_iam_policy" "dev_compute" {
         Sid    = "LambdaProjectFunctions"
         Effect = "Allow"
         Action = [
-          "lambda:InvokeFunction", "lambda:UpdateFunctionCode",
-          "lambda:UpdateFunctionConfiguration", "lambda:GetFunction",
-          "lambda:CreateFunction", "lambda:DeleteFunction",
-          "lambda:AddPermission", "lambda:GetPolicy"
+          "lambda:InvokeFunction",
+          "lambda:UpdateFunctionCode",
+          "lambda:UpdateFunctionConfiguration",
+          "lambda:GetFunction",
+          "lambda:CreateFunction",
+          "lambda:DeleteFunction",
+          "lambda:AddPermission",
+          "lambda:GetPolicy"
         ]
         Resource = "arn:aws:lambda:${var.aws_region}:${var.aws_account_id}:function:${var.project_name}-*"
       },
@@ -84,10 +94,15 @@ resource "aws_iam_policy" "dev_compute" {
         Sid    = "ECSProjectTasks"
         Effect = "Allow"
         Action = [
-          "ecs:RunTask", "ecs:DescribeTasks", "ecs:StopTask",
-          "ecs:RegisterTaskDefinition", "ecs:DeregisterTaskDefinition",
-          "ecs:DescribeTaskDefinition", "ecs:ListTaskDefinitions",
-          "ecs:CreateCluster", "ecs:DescribeClusters"
+          "ecs:RunTask",
+          "ecs:DescribeTasks",
+          "ecs:StopTask",
+          "ecs:RegisterTaskDefinition",
+          "ecs:DeregisterTaskDefinition",
+          "ecs:DescribeTaskDefinition",
+          "ecs:ListTaskDefinitions",
+          "ecs:CreateCluster",
+          "ecs:DescribeClusters"
         ]
         Resource = "*"
       },
@@ -95,11 +110,17 @@ resource "aws_iam_policy" "dev_compute" {
         Sid    = "ECRProjectRepositories"
         Effect = "Allow"
         Action = [
-          "ecr:GetAuthorizationToken", "ecr:BatchCheckLayerAvailability",
-          "ecr:GetDownloadUrlForLayer", "ecr:BatchGetImage",
-          "ecr:PutImage", "ecr:InitiateLayerUpload",
-          "ecr:UploadLayerPart", "ecr:CompleteLayerUpload",
-          "ecr:CreateRepository", "ecr:DescribeRepositories"
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchGetImage",
+          "ecr:PutImage",
+          "ecr:InitiateLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:CompleteLayerUpload",
+          "ecr:CreateRepository",
+          "ecr:DescribeRepositories",
+          "ecr:ListTagsForResource" # Necesario para refresh de Terraform
         ]
         Resource = "*"
       }
@@ -119,8 +140,12 @@ resource "aws_iam_policy" "dev_data" {
         Sid    = "DynamoDBProjectTables"
         Effect = "Allow"
         Action = [
-          "dynamodb:PutItem", "dynamodb:GetItem", "dynamodb:UpdateItem",
-          "dynamodb:DeleteItem", "dynamodb:DescribeTable"
+          "dynamodb:PutItem",
+          "dynamodb:GetItem",
+          "dynamodb:UpdateItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:DescribeTable",
+          "dynamodb:DescribeContinuousBackups" # Necesario para refresh de Terraform
         ]
         Resource = "arn:aws:dynamodb:${var.aws_region}:${var.aws_account_id}:table/${var.project_name}-*"
       },
@@ -128,16 +153,20 @@ resource "aws_iam_policy" "dev_data" {
         Sid    = "SecretsManagerProjectOnly"
         Effect = "Allow"
         Action = [
-          "secretsmanager:GetSecretValue", "secretsmanager:CreateSecret",
-          "secretsmanager:UpdateSecret", "secretsmanager:DescribeSecret"
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:CreateSecret",
+          "secretsmanager:UpdateSecret",
+          "secretsmanager:DescribeSecret"
         ]
         Resource = "arn:aws:secretsmanager:${var.aws_region}:${var.aws_account_id}:secret:/app/*"
       },
       {
-        Sid      = "BedrockClaudeHaiku"
-        Effect   = "Allow"
-        Action   = ["bedrock:InvokeModel"]
-        Resource = "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-3-haiku*"
+        Sid    = "BedrockClaudeHaiku"
+        Effect = "Allow"
+        Action = ["bedrock:InvokeModel"]
+        Resource = [
+          "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-3-haiku*"
+        ]
       }
     ]
   })
@@ -152,22 +181,25 @@ resource "aws_iam_policy" "dev_network_obs" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid      = "CloudFrontInvalidations"
-        Effect   = "Allow"
-        Action   = ["cloudfront:CreateInvalidation", "cloudfront:GetDistribution", "cloudfront:ListDistributions"]
+        Sid    = "CloudFrontInvalidations"
+        Effect = "Allow"
+        Action = [
+          "cloudfront:CreateInvalidation",
+          "cloudfront:GetDistribution",
+          "cloudfront:ListDistributions"
+        ]
         Resource = "*"
       },
       {
         Sid    = "CloudWatchLogsRead"
         Effect = "Allow"
         Action = [
-          "logs:GetLogEvents", "logs:FilterLogEvents",
-          "logs:DescribeLogGroups", "logs:DescribeLogStreams"
+          "logs:GetLogEvents",
+          "logs:FilterLogEvents",
+          "logs:DescribeLogGroups",
+          "logs:DescribeLogStreams"
         ]
-        Resource = [
-          "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/aws/lambda/${var.project_name}-*",
-          "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/ecs/${var.project_name}-*"
-        ]
+        Resource = "*" # DescribeLogGroups requiere "*"
       },
       {
         Sid      = "IAMPassRoleToServices"
@@ -180,10 +212,6 @@ resource "aws_iam_policy" "dev_network_obs" {
           }
         }
       },
-
-      # IAM: lectura de roles del proyecto para que Terraform pueda
-      # verificar el estado actual durante plan y apply.
-      # Solo lectura — no permite crear, modificar ni borrar roles.
       {
         Sid    = "IAMReadProjectRoles"
         Effect = "Allow"
@@ -197,15 +225,13 @@ resource "aws_iam_policy" "dev_network_obs" {
           "iam:ListAttachedUserPolicies",
           "iam:ListUserPolicies",
           "iam:GetPolicy",
-          "iam:GetPolicyVersion"
+          "iam:GetPolicyVersion",
+          "iam:ListAccessKeys",
+          "apigateway:GET",
+          "cloudfront:GetOriginAccessControl"
         ]
-        Resource = [
-          "arn:aws:iam::${var.aws_account_id}:role/${var.project_name}-*",
-          "arn:aws:iam::${var.aws_account_id}:user/${var.project_name}-*",
-          "arn:aws:iam::${var.aws_account_id}:policy/${var.project_name}-*"
-        ]
+        Resource = "*"
       }
-
     ]
   })
 }
@@ -230,13 +256,11 @@ resource "aws_iam_user_policy_attachment" "dev_network_obs" {
   user       = aws_iam_user.dev.name
   policy_arn = aws_iam_policy.dev_network_obs.arn
 }
+
 # =============================================================================
 # SECCIÓN 2: Rol de ejecución para Lambda
 # =============================================================================
 
-# La "trust policy" define quién puede asumir este rol.
-# En este caso, solo el servicio Lambda de AWS puede hacerlo.
-# Sin esta política, nadie puede usar el rol.
 resource "aws_iam_role" "lambda_execution" {
   name = "${var.project_name}-lambda-execution-${var.environment}"
 
@@ -259,7 +283,6 @@ resource "aws_iam_role_policy" "lambda_execution" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      # CloudWatch Logs: Lambda necesita crear y escribir sus propios logs
       {
         Sid    = "CloudWatchLogs"
         Effect = "Allow"
@@ -270,7 +293,6 @@ resource "aws_iam_role_policy" "lambda_execution" {
         ]
         Resource = "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/aws/lambda/${var.project_name}-*"
       },
-      # DynamoDB: escribir el job inicial y leer el estado para el polling
       {
         Sid    = "DynamoDBJobs"
         Effect = "Allow"
@@ -281,22 +303,18 @@ resource "aws_iam_role_policy" "lambda_execution" {
         ]
         Resource = "arn:aws:dynamodb:${var.aws_region}:${var.aws_account_id}:table/${var.project_name}-jobs-${var.environment}"
       },
-      # S3: leer el resultado cuando el usuario consulta el estado DONE
       {
         Sid      = "S3ReadResults"
         Effect   = "Allow"
         Action   = ["s3:GetObject"]
         Resource = "arn:aws:s3:::${var.project_name}-results-${var.environment}/*"
       },
-      # ECS: lanzar la tarea Fargate cuando llega una solicitud de análisis
       {
         Sid      = "ECSRunTask"
         Effect   = "Allow"
         Action   = ["ecs:RunTask"]
         Resource = "*"
       },
-      # IAM PassRole: necesario para que Lambda pueda asignar el rol
-      # de Fargate cuando lanza la tarea ECS
       {
         Sid      = "PassRoleToFargate"
         Effect   = "Allow"
@@ -333,7 +351,6 @@ resource "aws_iam_role_policy" "fargate_execution" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      # CloudWatch Logs: el contenedor escribe sus logs aquí
       {
         Sid    = "CloudWatchLogs"
         Effect = "Allow"
@@ -344,44 +361,36 @@ resource "aws_iam_role_policy" "fargate_execution" {
         ]
         Resource = "arn:aws:logs:${var.aws_region}:${var.aws_account_id}:log-group:/ecs/${var.project_name}-*"
       },
-      # S3: escribir el resultado del resumen
       {
         Sid      = "S3WriteResults"
         Effect   = "Allow"
         Action   = ["s3:PutObject"]
         Resource = "arn:aws:s3:::${var.project_name}-results-${var.environment}/*"
       },
-      # DynamoDB: actualizar el estado del job (PROCESSING → DONE o ERROR)
       {
         Sid      = "DynamoDBUpdateJob"
         Effect   = "Allow"
         Action   = ["dynamodb:UpdateItem"]
         Resource = "arn:aws:dynamodb:${var.aws_region}:${var.aws_account_id}:table/${var.project_name}-jobs-${var.environment}"
       },
-      # Secrets Manager: obtener la clave de YouTube API
-      # La condición de ARN garantiza acceso solo a secretos de este proyecto
       {
         Sid      = "SecretsManagerProjectOnly"
         Effect   = "Allow"
         Action   = ["secretsmanager:GetSecretValue"]
         Resource = "arn:aws:secretsmanager:${var.aws_region}:${var.aws_account_id}:secret:/app/*"
       },
-      # Bedrock: invocar Claude Haiku para generar el resumen
       {
-        Sid      = "BedrockInvokeHaiku"
-        Effect   = "Allow"
-        Action   = ["bedrock:InvokeModel"]
-        Resource = "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-3-haiku*"
+        Sid    = "BedrockInvokeHaiku"
+        Effect = "Allow"
+        Action = ["bedrock:InvokeModel"]
+        Resource = [
+          "arn:aws:bedrock:${var.aws_region}::foundation-model/anthropic.claude-3-haiku*"
+        ]
       }
-      # Nota: Fargate NO tiene permisos para lanzar nuevas tareas ECS.
-      # Esto limita el blast radius si el contenedor es comprometido.
     ]
   })
 }
 
-# Política gestionada por AWS necesaria para que ECS pueda arrancar el contenedor
-# (descargar la imagen de ECR, escribir logs iniciales antes de que el contenedor
-# tenga control). Esta es una excepción justificada a "no usar políticas AWS".
 resource "aws_iam_role_policy_attachment" "fargate_ecs_task_execution" {
   role       = aws_iam_role.fargate_execution.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"

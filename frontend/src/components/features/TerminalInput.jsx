@@ -31,9 +31,9 @@ const TerminalInput = ({ onSummaryReady }) => {
       <div className="flex items-center gap-4 mb-2">
         <span className={`h-1 w-1 ${status === 'ERROR' ? 'bg-error' : 'bg-primary'} animate-pulse`}></span>
         <label className="text-secondary text-[10px] font-bold tracking-widest uppercase opacity-60">
-          {status === 'IDLE' && 'INPUT_STREAM // YOUTUBE_URL_REQUIRED'}
-          {(status === 'PENDING' || status === 'PROCESSING') && 'SYNCHRONIZING_WITH_AWS_FARGATE...'}
-          {status === 'DONE' && 'NEURAL_LINK_STABLE // ANALYSIS_COMPLETE'}
+          {status === 'IDLE' && 'ENTRADA_STREAM // YOUTUBE_URL_REQUERIDA'}
+          {(status === 'PENDING' || status === 'PROCESSING') && 'RAZONANDO_ESPERE...'}
+          {status === 'DONE' && 'NEURAL_LINK_STABLE // ANALISIS_COMPLETADO'}
           {status === 'ERROR' && `SYSTEM_FAILURE // ${error || 'UNKNOWN_ERROR'}`}
         </label>
       </div>
@@ -42,7 +42,7 @@ const TerminalInput = ({ onSummaryReady }) => {
         <input
           type="text"
           disabled={status === 'PENDING' || status === 'PROCESSING'}
-          placeholder="PASTE_YOUTUBE_URL_HERE..."
+          placeholder="PEGAR_URL_YOUTUBE_AQUI..."
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           className="flex-grow bg-surface-high text-white px-6 py-4 text-sm font-medium
@@ -56,7 +56,7 @@ const TerminalInput = ({ onSummaryReady }) => {
           className="bg-liquid-light text-void font-bold text-xs px-10 py-4 uppercase tracking-widest
                      disabled:grayscale transition-all duration-500 hover:shadow-neon-primary"
         >
-          {status === 'PENDING' || status === 'PROCESSING' ? 'Wait...' : 'Summarize'}
+          {status === 'PENDING' || status === 'PROCESSING' ? 'PROCESANDO...' : 'ANALIZAR'}
         </button>
 
         {(status === 'PENDING' || status === 'PROCESSING') && (

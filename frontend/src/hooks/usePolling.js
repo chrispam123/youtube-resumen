@@ -18,7 +18,9 @@ export const usePolling = () => {
         setStatus(data.status);
 
         if (data.status === 'DONE') {
-          setResult(data.summary);
+          // CAMBIO: Guardamos TODO el objeto data, no solo data.summary
+          setResult(data);
+          setStatus('DONE');
           clearInterval(timerRef.current);
         } else if (data.status === 'ERROR') {
           setError(data.message || 'ERROR_DESCONOCIDO');

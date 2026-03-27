@@ -27,6 +27,14 @@ export default {
         '0%': { opacity: '0', transform: 'translateY(10px)' },
         '100%': { opacity: '1', transform: 'translateY(0)' },
       },
+      'glitch-bar': {
+        '0%': { width: '0%', left: '0%' },
+        '20%': { width: '30%', left: '10%' },
+        '40%': { width: '10%', left: '60%' },
+        '60%': { width: '50%', left: '30%' },
+        '80%': { width: '20%', left: '80%' },
+       '100%': { width: '0%', left: '100%' },
+      },
      },
       fontFamily: {
         sans: ['"Space Grotesk"', 'sans-serif'],

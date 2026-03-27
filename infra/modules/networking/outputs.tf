@@ -5,8 +5,9 @@ output "api_gateway_id" {
 }
 
 output "api_gateway_arn" {
-  description = "ARN del API Gateway v2"
-  value       = aws_apigatewayv2_api.main.arn
+  description = "ARN de ejecución del API Gateway v2 (necesario para permisos de Lambda)"
+  # CAMBIO: .execution_arn es el que tiene permisos para "llamar" (invoke)
+  value = aws_apigatewayv2_api.main.execution_arn
 }
 
 output "api_gateway_endpoint" {

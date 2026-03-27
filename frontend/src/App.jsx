@@ -22,7 +22,7 @@ function App() {
         </h1>
         <div className="mt-2 flex gap-8">
           <span className="text-secondary text-[10px] font-bold tracking-widest uppercase opacity-50">
-            v2.0.99 // Deep_Space_Gemini_Edición
+            v2.1.0 // Deep_Space_Gemini_Edición
           </span>
         </div>
       </header>

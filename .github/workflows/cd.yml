@@ -55,12 +55,19 @@ jobs:
           AWS_PAGER: ""
 
       # 3. Desplegar Frontend (S3 + CloudFront)
-      - name: Build and Deploy Frontend
+      - name: Build Frontend
+        env:
+          VITE_API_URL: "https://d1kl02zr5h2zli.cloudfront.net/api"
         run: |
           cd frontend
           npm ci
           npm run build
-          aws s3 sync dist/ s3://yt-summarizer-frontend-dev --delete
-          # Obtenemos el ID de CloudFront desde Terraform para invalidar
-          DIST_ID=$(cd ../infra/environments/dev && terraform output -raw cloudfront_distribution_id)
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync frontend/dist/ s3://yt-summarizer-frontend-dev --delete
+
+      - name: CloudFront Invalidation
+        run: |
+          DIST_ID=$(cd infra/environments/dev && terraform output -raw cloudfront_distribution_id)
           aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/*"

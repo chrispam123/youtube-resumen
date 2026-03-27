@@ -61,7 +61,8 @@ resource "aws_iam_policy" "dev_write_project" {
           "ecs:RegisterTaskDefinition",
           "ecs:DeregisterTaskDefinition",
           "ecr:GetAuthorizationToken",
-          "iam:PassRole"
+          "iam:PassRole",
+          "cloudfront:*" # <--- MOVIDO AQUÍ (CloudFront usa IDs aleatorios, no prefijos)
         ]
         Resource = "*"
       }

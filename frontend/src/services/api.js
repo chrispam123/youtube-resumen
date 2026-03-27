@@ -1,9 +1,9 @@
-
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 export const api = {
   // FASE 1: Enviar la URL de YouTube para iniciar el análisis
   async analyzeVideo(videoUrl) {
+  // Esto generará: https://d1kl02zr5h2zli.cloudfront.net/api/analyze
     const response = await fetch(`${API_BASE_URL}/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

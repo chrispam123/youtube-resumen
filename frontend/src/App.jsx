@@ -1,29 +1,33 @@
-import './App.css'
+
+import TerminalInput from './components/features/TerminalInput';
 
 function App() {
   return (
-    // Contenedor principal con el fondo "Void" y fuente Space Grotesk
-    <main className="min-h-screen w-full bg-void flex flex-col items-center justify-center p-8">
+    // EL VACÍO: Fondo negro absoluto y scrollbar neón (vía index.css)
+    <main className="min-h-screen w-full bg-void flex flex-col p-12 md:p-24">
 
-      {/* TÍTULO DE PRUEBA: Usando Display-LG y Asimetría */}
-      <h1 className="text-primary text-6xl font-bold tracking-tightest uppercase glitch-shadow mb-4">
-        Neural_Sum
-      </h1>
+      {/* CABECERA: Alineación asimétrica (izquierda) */}
+      <header className="w-full max-w-6xl">
+        <h1 className="text-primary text-5xl md:text-7xl font-bold tracking-tightest uppercase glitch-shadow">
+          Neural_Sum
+        </h1>
+        <div className="mt-2 flex gap-8">
+          <span className="text-secondary text-[10px] font-bold tracking-widest uppercase opacity-50">
+            v2.0.99 // Deep_Space_Edition
+          </span>
+          <span className="text-tertiary text-[10px] font-bold tracking-widest uppercase opacity-50">
+            Status: Online
+          </span>
+        </div>
+      </header>
 
-      {/* SUBTÍTULO: Usando Label-SM y espaciado amplio */}
-      <p className="text-secondary text-xs font-bold tracking-widest uppercase opacity-70">
-        System_Ready // Neural_Link_Established
-      </p>
+      {/* COMPONENTE DE ENTRADA */}
+      <TerminalInput />
 
-      {/* CAJA DE PRUEBA: Tonal Layering (Sin bordes, solo cambio de fondo) */}
-      <div className="mt-12 w-full max-w-2xl h-32 bg-surface-low flex items-center justify-center shadow-neon-primary">
-        <span className="text-tertiary text-sm font-medium">
-          Esperando entrada de datos...
-        </span>
-      </div>
-
+      {/* DECORACIÓN DE FONDO: Un gradiente muy sutil que "sangra" en la oscuridad */}
+      <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-secondary/5 blur-[150px] -z-10 pointer-events-none"></div>
     </main>
-  )
+  );
 }
 
-export default App
+export default App;

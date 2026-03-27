@@ -37,7 +37,7 @@ response.json
 .env.*
 *.pem
 *credentials*
-
+!.env.example
 # Editores e IDEs
 .DS_Store
 .idea/
@@ -57,3 +57,7 @@ status.json
 *.json
 !backend/**/*.json
 !frontend/**/*.json
+#node
+frontend/node_modules/
+frontend/dist/
+frontend/.env

@@ -1,0 +1,37 @@
+
+repos:
+  # Checks generales: ficheros bien formados, sin espacios al final, etc.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: detect-private-key      # bloquea commits con claves privadas
+
+  # Ruff — linter y formateador para Python (reemplaza flake8 + black + isort)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff                    # lint
+        args: [--fix]               # corrige automáticamente lo que puede
+      - id: ruff-format             # format (equivalente a black)
+
+  # Terraform — formato consistente
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.90.0
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_validate
+
+  # ESLint para el frontend — ejecuta el linter de Node localmente
+  - repo: local
+    hooks:
+      - id: eslint-frontend
+        name: eslint frontend
+        entry: bash -c 'cd frontend && npm run lint'
+        language: system        # usa el Node del sistema, no un entorno aislado
+        files: ^frontend/.*\.(js|jsx|ts|tsx)$  # solo se activa con ficheros frontend
+        pass_filenames: false   # le pasamos el control a npm, no ficheros individuales

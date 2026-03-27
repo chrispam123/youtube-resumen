@@ -11,6 +11,16 @@ dist/
 # Node
 node_modules/
 frontend/dist/
+# Tests y cobertura
+.coverage
+coverage.xml
+htmlcov/
+# Directorios de empaquetado Lambda
+backend/handlers/package/
+backend/handlers/lambda.zip
+
+# Artefactos de invocación Lambda local
+response.json
 
 # Terraform
 **/.terraform/
@@ -27,10 +37,27 @@ frontend/dist/
 .env.*
 *.pem
 *credentials*
-
+!.env.example
 # Editores e IDEs
 .DS_Store
 .idea/
 .vscode/
 *.swp
 
+# Ignorar archivos de registro de errores
+crash.log
+# Ignorar archivos comprimidos generados
+*.zip
+#lambda
+backend/lambda/package/
+backend/lambda/lambda.zip
+# Artefactos de pruebas locales
+resumen.json
+status.json
+*.json
+!backend/**/*.json
+!frontend/**/*.json
+#node
+frontend/node_modules/
+frontend/dist/
+frontend/.env

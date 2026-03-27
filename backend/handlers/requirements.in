@@ -1,0 +1,3 @@
+# Lambda solo necesita lo mínimo — boto3 ya está disponible en el runtime de AWS
+# pero lo incluimos explícitamente para tests locales y control de versión
+boto3>=1.34

@@ -1,0 +1,5 @@
+# Copia este fichero a terraform.tfvars y ajusta los valores
+# NUNCA commitees terraform.tfvars (está en .gitignore)
+
+aws_region   = "eu-west-1"
+project_name = "yt-summarizer"

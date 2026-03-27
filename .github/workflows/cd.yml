@@ -1,0 +1,54 @@
+name: "CD: Deploy to Production"
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    name: "Deploy Full Stack"
+    runs-on: ubuntu-latest
+    # Aquí definimos que este job requiere aprobación manual en GitHub
+    environment: production
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # 1. Desplegar Infraestructura
+      - name: Terraform Apply
+        run: |
+          cd infra/environments/dev
+          terraform init
+          terraform apply -auto-approve
+
+      # 2. Desplegar Backend (Lambda)
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Deploy Lambdas
+        run: |
+          # Usamos el comando del Makefile que ya creamos
+          make lambda-deploy
+        env:
+          AWS_PAGER: ""
+
+      # 3. Desplegar Frontend (S3 + CloudFront)
+      - name: Build and Deploy Frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+          aws s3 sync dist/ s3://yt-summarizer-frontend-dev --delete
+          # Obtenemos el ID de CloudFront desde Terraform para invalidar
+          DIST_ID=$(cd ../infra/environments/dev && terraform output -raw cloudfront_distribution_id)
+          aws cloudfront create-invalidation --distribution-id $DIST_ID --paths "/*"

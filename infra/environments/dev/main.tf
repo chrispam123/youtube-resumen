@@ -79,6 +79,13 @@ module "networking" {
   frontend_bucket_arn = module.storage.frontend_bucket_arn
 }
 
+module "mensajes" {
+  source = "../../modules/mensajes"
+
+  project_name = var.project_name
+  environment  = var.environment
+}
+
 module "compute" {
   source = "../../modules/compute"
 
@@ -94,5 +101,9 @@ module "compute" {
   results_bucket_name         = module.storage.results_bucket_name
   api_gateway_id              = module.networking.api_gateway_id
   api_gateway_arn             = module.networking.api_gateway_arn
+  sqs_jobs_queue_url          = module.mensajes.sqs_jobs_queue_url
+  sqs_jobs_queue_arn          = module.mensajes.sqs_jobs_queue_arn
+  sqs_jobs_queue_name         = module.mensajes.sqs_jobs_queue_name
+  sqs_jobs_dlq_arn            = module.mensajes.sqs_jobs_dlq_arn
 
 }

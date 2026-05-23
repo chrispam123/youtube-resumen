@@ -66,3 +66,23 @@ variable "subnet_ids" {
   description = "Subnets para las tareas Fargate"
   type        = string
 }
+
+variable "sqs_jobs_queue_url" {
+  description = "URL de la cola SQS principal de jobs"
+  type        = string
+}
+
+variable "sqs_jobs_queue_arn" {
+  description = "ARN de la cola SQS principal de jobs"
+  type        = string
+}
+
+variable "sqs_jobs_queue_name" {
+  description = "Nombre de la cola SQS principal de jobs"
+  type        = string
+}
+
+variable "sqs_jobs_dlq_arn" {
+  description = "ARN de la Dead Letter Queue de jobs"
+  type        = string
+}

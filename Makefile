@@ -126,7 +126,11 @@ lambda-deploy: lambda-package ## Despliega el código Lambda a AWS
 		--function-name yt-summarizer-status-dev \
 		--zip-file fileb://backend/handlers/lambda.zip \
 		$(AWS_FLAGS)
-	@echo "✓ Lambda desplegada"
+	aws lambda update-function-code \
+		--function-name yt-summarizer-consumer-dev \
+		--zip-file fileb://backend/handlers/lambda.zip \
+		$(AWS_FLAGS)
+	@echo "✓ Lambdas desplegadas (analyze, status, consumer)"
 
 # =============================================================================
 # Limpieza

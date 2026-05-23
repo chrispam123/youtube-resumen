@@ -16,10 +16,7 @@ from moto import mock_aws
 os.environ.update(
     {
         "DYNAMODB_TABLE": "test-jobs",
-        "ECS_CLUSTER": "test-cluster",
-        "ECS_TASK_DEFINITION": "test-processor",
-        "FARGATE_ROLE_ARN": "arn:aws:iam::123456789012:role/test-role",
-        "AWS_ACCOUNT_ID": "123456789012",
+        "SQS_JOBS_QUEUE_URL": "https://sqs.eu-west-1.amazonaws.com/123456789012/test-jobs",
         "ENVIRONMENT": "test",
         "AWS_DEFAULT_REGION": "eu-west-1",
         "AWS_ACCESS_KEY_ID": "testing",
@@ -72,9 +69,8 @@ class TestHandler:
     def _make_event(self, url: str) -> dict:
         return {"body": json.dumps({"url": url})}
 
-    @patch("backend.handlers.src.analyze.launch_fargate_task")
-    def test_url_valida_devuelve_202(self, mock_fargate):
-        mock_fargate.return_value = "arn:aws:ecs:eu-west-1:123:task/abc"
+    @patch("backend.handlers.src.analyze.publish_to_sqs")
+    def test_url_valida_devuelve_202(self, mock_sqs):
         event = self._make_event("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
 
         response = handler(event, None)

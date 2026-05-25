@@ -99,7 +99,7 @@ resource "aws_iam_role_policy" "lambda_execution" {
       { Effect = "Allow", Action = ["s3:GetObject"], Resource = "arn:aws:s3:::${var.project_name}-*" },
       { Effect = "Allow", Action = ["ecs:RunTask"], Resource = "*" },
       { Effect = "Allow", Action = ["iam:PassRole"], Resource = "*" },
-      { Effect = "Allow", Action = ["sqs:SendMessage", "sqs:GetQueueAttributes"], Resource = "arn:aws:sqs:*:*:${var.project_name}-*" }
+      { Effect = "Allow", Action = ["sqs:*"], Resource = "arn:aws:sqs:*:*:${var.project_name}-*" }
     ]
   })
 }

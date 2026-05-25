@@ -32,7 +32,6 @@ resource "aws_iam_policy" "dev_write_project" {
         Action = [
           "s3:*",
           "dynamodb:*",
-          "lambda:*",
           "ecs:*",
           "ecr:*",
           "sqs:*",
@@ -45,7 +44,6 @@ resource "aws_iam_policy" "dev_write_project" {
           "arn:aws:s3:::${var.project_name}-*",
           "arn:aws:s3:::${var.project_name}-*/*",
           "arn:aws:dynamodb:*:*:table/${var.project_name}-*",
-          "arn:aws:lambda:*:*:function:${var.project_name}-*",
           "arn:aws:ecs:*:*:cluster/${var.project_name}-*",
           "arn:aws:ecs:*:*:task-definition/${var.project_name}-*:*",
           "arn:aws:ecr:*:*:repository/${var.project_name}-*",
@@ -63,13 +61,9 @@ resource "aws_iam_policy" "dev_write_project" {
           "ecs:RegisterTaskDefinition",
           "ecs:DeregisterTaskDefinition",
           "ecr:GetAuthorizationToken",
-          "iam:PassRole",
-          "iam:PutRolePolicy",
-          "iam:DeleteRolePolicy",
-          "cloudfront:*",
-          "lambda:CreateEventSourceMapping", # SQS → Lambda trigger (IDs autogenerados)
-          "lambda:DeleteEventSourceMapping", # limpieza al destruir infra
-          "lambda:GetEventSourceMapping"     # lectura necesaria para plan/apply
+          "iam:*",       # roles, políticas, versiones — ARN autogenerados
+          "lambda:*",    # event-source-mappings, tags — ARN autogenerados
+          "cloudfront:*" # distribuciones — IDs aleatorios
         ]
         Resource = "*"
       }

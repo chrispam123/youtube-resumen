@@ -35,6 +35,7 @@ resource "aws_iam_policy" "dev_write_project" {
           "lambda:*",
           "ecs:*",
           "ecr:*",
+          "sqs:*",
           "apigateway:*",
           "cloudfront:*",
           "secretsmanager:*",
@@ -51,7 +52,8 @@ resource "aws_iam_policy" "dev_write_project" {
           "arn:aws:logs:*:*:log-group:/aws/lambda/${var.project_name}-*",
           "arn:aws:logs:*:*:log-group:/ecs/${var.project_name}-*",
           "arn:aws:logs:*:*:log-group:/aws/apigateway/${var.project_name}-*",
-          "arn:aws:secretsmanager:*:*:secret:/app/*"
+          "arn:aws:secretsmanager:*:*:secret:/app/*",
+          "arn:aws:sqs:*:*:${var.project_name}-*"
         ]
       },
       {
@@ -62,7 +64,9 @@ resource "aws_iam_policy" "dev_write_project" {
           "ecs:DeregisterTaskDefinition",
           "ecr:GetAuthorizationToken",
           "iam:PassRole",
-          "cloudfront:*" # <--- MOVIDO AQUÍ (CloudFront usa IDs aleatorios, no prefijos)
+          "iam:PutRolePolicy",
+          "iam:DeleteRolePolicy",
+          "cloudfront:*"
         ]
         Resource = "*"
       }

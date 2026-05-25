@@ -149,7 +149,9 @@ resource "aws_lambda_function" "analyze" {
       ECS_TASK_DEFINITION = aws_ecs_task_definition.processor.family
       FARGATE_ROLE_ARN    = var.fargate_execution_role_arn
       AWS_ACCOUNT_ID      = var.aws_account_id
-      SUBNET_IDS          = var.subnet_ids # añadida
+      SUBNET_IDS          = var.subnet_ids
+      SQS_JOBS_QUEUE_URL  = var.sqs_jobs_queue_url
+      SQS_JOBS_QUEUE_NAME = var.sqs_jobs_queue_name
     }
   }
 
@@ -235,4 +237,55 @@ resource "aws_lambda_permission" "status" {
   function_name = aws_lambda_function.status.function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${var.api_gateway_arn}/*/*"
+}
+
+# =============================================================================
+# SECCIÓN 6: Lambda — consumer de SQS
+# =============================================================================
+
+resource "aws_cloudwatch_log_group" "lambda_consumer" {
+  name              = "/aws/lambda/${var.project_name}-consumer-${var.environment}"
+  retention_in_days = 14
+}
+
+resource "aws_lambda_function" "consumer" {
+  function_name = "${var.project_name}-consumer-${var.environment}"
+  role          = var.lambda_execution_role_arn
+  runtime       = "python3.12"
+  handler       = "consumer.handler"
+  timeout       = 120 # puede tomar tiempo lanzar Fargate
+  memory_size   = 256
+
+  filename         = data.archive_file.lambda_placeholder.output_path
+  source_code_hash = data.archive_file.lambda_placeholder.output_base64sha256
+
+  environment {
+    variables = {
+      ENVIRONMENT         = var.environment
+      ECS_CLUSTER         = aws_ecs_cluster.main.name
+      ECS_TASK_DEFINITION = aws_ecs_task_definition.processor.family
+      SUBNET_IDS          = var.subnet_ids
+    }
+  }
+
+  depends_on = [aws_cloudwatch_log_group.lambda_consumer]
+}
+
+# Trigger SQS: cuando llegue un mensaje a la cola, invoca al Lambda consumer
+resource "aws_lambda_event_source_mapping" "sqs_consumer" {
+  event_source_arn = var.sqs_jobs_queue_arn
+  function_name    = aws_lambda_function.consumer.arn
+  enabled          = true
+
+  # Procesa un mensaje a la vez para mantener orden y controlar concurrencia
+  batch_size = 1
+}
+
+# Permiso para que SQS pueda invocar al Lambda consumer
+resource "aws_lambda_permission" "sqs_consumer" {
+  statement_id  = "AllowSQSInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.consumer.function_name
+  principal     = "sqs.amazonaws.com"
+  source_arn    = var.sqs_jobs_queue_arn
 }

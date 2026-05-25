@@ -3,12 +3,12 @@
 Responsabilidades:
   1. Validar la URL de YouTube
   2. Extraer el video_id
-  3. Crear el job en DynamoDB con estado PENDING job_id
-  4. Lanzar la tarea Fargate
+  3. Crear el job en DynamoDB con estado PENDING
+  4. Publicar mensaje en SQS para que el consumer lance Fargate
   5. Responder 202 con el job_id
 
 Este handler debe ser rápido. No hace trabajo pesado.
-Todo el procesamiento ocurre en Fargate de forma asíncrona.
+La cola SQS permite reintentos automáticos si Fargate falla.
 """
 
 import json
@@ -24,19 +24,13 @@ from botocore.exceptions import ClientError
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# Clientes AWS inicializados fuera del handler para reutilizar
-# la conexión entre invocaciones calientes de Lambda.
+# Clientes AWS inicializados fuera del handler
 dynamodb = boto3.resource("dynamodb")
-ecs_client = boto3.client("ecs")
+sqs_client = boto3.client("sqs")
 
-# Variables de entorno — definidas en la task definition de Terraform
+# Variables de entorno
 DYNAMODB_TABLE = os.environ["DYNAMODB_TABLE"]
-ECS_CLUSTER = os.environ["ECS_CLUSTER"]
-ECS_TASK_DEFINITION = os.environ["ECS_TASK_DEFINITION"]
-FARGATE_ROLE_ARN = os.environ["FARGATE_ROLE_ARN"]
-AWS_ACCOUNT_ID = os.environ["AWS_ACCOUNT_ID"]
-ENVIRONMENT = os.environ.get("ENVIRONMENT", "dev")
-SUBNET_IDS = os.environ["SUBNET_IDS"].split(",")  # "subnet-xxx,subnet-yyy"
+SQS_JOBS_QUEUE_URL = os.environ["SQS_JOBS_QUEUE_URL"]
 
 
 # Patrón para validar y extraer el video_id de URLs de YouTube.
@@ -73,48 +67,23 @@ def create_job(job_id: str, video_id: str) -> None:
     logger.info("Job creado en DynamoDB: job_id=%s video_id=%s", job_id, video_id)
 
 
-def launch_fargate_task(job_id: str, video_id: str) -> str:
+def publish_to_sqs(job_id: str, video_id: str) -> None:
     """
-    Lanza una tarea Fargate para procesar el job.
-    Devuelve el ARN de la tarea lanzada.
+    Publica un mensaje en SQS para encolar el procesamiento del job.
 
-    La tarea recibe job_id y video_id como variables de entorno,
-    que es el mecanismo estándar para pasar parámetros a contenedores ECS.
+    SQS desacopla Lambda de Fargate: si Fargate falla,
+    el mensaje reaparece (visibilty timeout) y se reintenta.
+    Tras 3 fallos, el mensaje pasa a la DLQ para revisión manual.
     """
-    response = ecs_client.run_task(
-        cluster=ECS_CLUSTER,
-        taskDefinition=ECS_TASK_DEFINITION,
-        launchType="FARGATE",
-        networkConfiguration={
-            # Fargate necesita configuración de red explícita.
-            # assignPublicIp=ENABLED es necesario para que el contenedor
-            # pueda hacer llamadas salientes a YouTube API y Bedrock
-            # sin un NAT Gateway (que sería más caro).
-            "awsvpcConfiguration": {
-                "subnets": SUBNET_IDS,  # viene de variable de entorno
-                "assignPublicIp": "ENABLED",
-            }
-        },
-        overrides={
-            "containerOverrides": [
-                {
-                    "name": "processor",
-                    "environment": [
-                        {"name": "JOB_ID", "value": job_id},
-                        {"name": "VIDEO_ID", "value": video_id},
-                    ],
-                }
-            ]
-        },
+    message = json.dumps({"job_id": job_id, "video_id": video_id})
+
+    response = sqs_client.send_message(
+        QueueUrl=SQS_JOBS_QUEUE_URL,
+        MessageBody=message,
     )
 
-    if response["failures"]:
-        failure = response["failures"][0]
-        raise RuntimeError(f"Fargate no pudo lanzar la tarea: {failure['reason']}")
-
-    task_arn = response["tasks"][0]["taskArn"]
-    logger.info("Tarea Fargate lanzada: task_arn=%s job_id=%s", task_arn, job_id)
-    return task_arn
+    message_id = response["MessageId"]
+    logger.info("Mensaje publicado en SQS: message_id=%s job_id=%s", message_id, job_id)
 
 
 def _response(status_code: int, body: dict) -> dict:
@@ -157,17 +126,14 @@ def handler(event: dict, context) -> dict:
             },
         )
 
-    # Crear job y lanzar tarea
+    # Crear job y encolar mensaje en SQS
     job_id = str(uuid.uuid4())
 
     try:
         create_job(job_id, video_id)
-        launch_fargate_task(job_id, video_id)
+        publish_to_sqs(job_id, video_id)
     except ClientError as e:
         logger.error("Error AWS: %s", e)
         return _response(500, {"error": "Error interno al crear el job"})
-    except RuntimeError as e:
-        logger.error("Error al lanzar Fargate: %s", e)
-        return _response(500, {"error": "Error interno al procesar la solicitud"})
 
     return _response(202, {"job_id": job_id, "status": "PENDING"})

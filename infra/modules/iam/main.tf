@@ -66,7 +66,10 @@ resource "aws_iam_policy" "dev_write_project" {
           "iam:PassRole",
           "iam:PutRolePolicy",
           "iam:DeleteRolePolicy",
-          "cloudfront:*"
+          "cloudfront:*",
+          "lambda:CreateEventSourceMapping", # SQS → Lambda trigger (IDs autogenerados)
+          "lambda:DeleteEventSourceMapping", # limpieza al destruir infra
+          "lambda:GetEventSourceMapping"     # lectura necesaria para plan/apply
         ]
         Resource = "*"
       }

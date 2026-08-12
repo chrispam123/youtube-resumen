@@ -3,7 +3,7 @@
 // =============================================================================
 
 const Footer = () => (
-  <footer>Yuyay v0.3 // synapse_edition</footer>
+  <footer>Yuyay v0.3 // Craft: Christian Gohring</footer>
 );
 
 export default Footer;

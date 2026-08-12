@@ -1,9 +1,9 @@
-# YouTube Summarizer — Project Spec
+# YUYAY — Project Spec
 
 **Versión**: 1.0.0
 **Estado**: actualizado tras revisión completa del código
 **Última revisión**: 2026-08
-**Autor**: equipo de desarrollo
+**Autor**:Christian Gohring
 
 > Este documento es la fuente de verdad del proyecto. Antes de modificar cualquier componente, lee la sección correspondiente para entender la intención original de la decisión. Si cambias una decisión arquitectónica, actualiza este Spec en el mismo PR.
 
@@ -13,7 +13,7 @@
 
 Una aplicación web que recibe la URL de un vídeo de YouTube y devuelve un resumen estructurado en español. El resumen incluye la idea principal, los puntos clave y una conclusión. Si la transcripción está en otro idioma, el modelo de IA la traduce dentro del mismo paso de generación.
 
-El sistema está diseñado para un volumen de ~5.000 usuarios/mes con ~2 análisis por usuario (10.000 análisis/mes). No está diseñado para escalar a millones de usuarios, y las decisiones de coste reflejan esa premisa.
+El sistema está diseñado para un volumen de ~5.000 usuarios/mes con ~2 análisis por usuario (10.000 análisis/mes). No está diseñado para escalar a millones de usuarios, y las decisiones de COSTES  reflejan esa premisa.
 
 ---
 

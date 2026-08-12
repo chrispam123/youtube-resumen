@@ -1,0 +1,359 @@
+/* =============================================================================
+   Yuyay — Design System
+   Filosofía: sinapsis neuronal. El color no decora, diagnostica.
+   ============================================================================= */
+
+/* ---------------------------------------------------------------------------
+   1. Custom Properties — Paleta + Tipografía
+   --------------------------------------------------------------------------- */
+
+:root {
+  /* Superficies */
+  --void:          #050B0C;
+  --surface-solid: #0B1618;
+  --surface:       #0B1618cc; /* con transparencia para blur */
+  --border:        #16282A;
+  --border-strong: #1F3A3C;
+
+  /* Texto */
+  --text-primary:   #E4F0EE;
+  --text-secondary: #6E8C89;
+  --text-muted:     #3E5654;
+
+  /* Estados semánticos */
+  --reposo:       #2DEFC4;
+  --reposo-dim:   #0F4A42;
+  --disparo:      #F2542D;
+  --sincronia:    #F4E4B8;
+  --alert:        #E2574A;
+
+  /* Tipografía — roles fijos, sin solapar */
+  --font-display:  'Anta', sans-serif;
+  --font-mono:     'JetBrains Mono', monospace;
+  --font-body:     'Hanken Grotesk', sans-serif;
+}
+
+/* ---------------------------------------------------------------------------
+   2. Reset base
+   --------------------------------------------------------------------------- */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  min-height: 100%;
+}
+
+body {
+  background: var(--void);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---------------------------------------------------------------------------
+   3. Layout — Page wrapper
+   --------------------------------------------------------------------------- */
+
+.page {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 24px 120px;
+}
+
+/* ---------------------------------------------------------------------------
+   4. Header — Marca + Status del sistema
+   --------------------------------------------------------------------------- */
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-icon {
+  width: 20px;
+  height: 22px;
+}
+
+.brand-word {
+  font-family: var(--font-display);
+  font-size: 17px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--reposo);
+  transition: color 0.4s ease;
+}
+
+.status-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* ---------------------------------------------------------------------------
+   5. Hero — Input + CTA
+   --------------------------------------------------------------------------- */
+
+.hero {
+  padding: 64px 0 48px;
+}
+
+.hero-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+}
+
+.hero-headline {
+  font-family: var(--font-display);
+  font-size: 34px;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+  max-width: 520px;
+}
+
+/* Input row */
+.input-row {
+  display: flex;
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  overflow: hidden;
+  background: var(--surface);
+  backdrop-filter: blur(2px);
+  transition: border-color 0.3s ease;
+}
+
+.input-row.is-error {
+  border-color: var(--alert);
+}
+
+.input-row input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 15px 16px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.input-row input::placeholder {
+  color: var(--text-muted);
+}
+
+.input-row input:disabled {
+  opacity: 0.55;
+}
+
+.input-row button {
+  background: var(--disparo);
+  color: var(--void);
+  border: none;
+  padding: 15px 26px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.2s ease, background 0.3s ease;
+  white-space: nowrap;
+}
+
+.input-row button:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+/* Error message inline */
+.error-msg {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--alert);
+  margin-top: 10px;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.error-msg.show {
+  opacity: 1;
+  height: auto;
+  margin-bottom: 8px;
+}
+
+/* ---------------------------------------------------------------------------
+   6. Results — Resumen estructurado
+   --------------------------------------------------------------------------- */
+
+.results {
+  margin-top: 56px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+  pointer-events: none;
+}
+
+.results.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.results-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+}
+
+.results-eyebrow::before {
+  content: '';
+  width: 20px;
+  height: 1px;
+  background: var(--border-strong);
+}
+
+.results-headline {
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+}
+
+/* Columns */
+.cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.col-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.col-a {
+  color: var(--reposo);
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.col-b .item {
+  border-left: 2px solid var(--reposo-dim);
+  padding-left: 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.col-b .item:last-child {
+  margin-bottom: 0;
+}
+
+/* Final card */
+.final {
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 24px;
+}
+
+.final-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sincronia);
+  margin-bottom: 12px;
+}
+
+.final-text {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-primary);
+}
+
+/* Sync note */
+.sync-note {
+  margin-top: 20px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--sincronia);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.sync-note.show {
+  opacity: 1;
+}
+
+/* ---------------------------------------------------------------------------
+   7. Footer
+   --------------------------------------------------------------------------- */
+
+footer {
+  margin-top: 88px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ---------------------------------------------------------------------------
+   8. Canvas — Fibras de fondo
+   --------------------------------------------------------------------------- */
+
+.fiber-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}

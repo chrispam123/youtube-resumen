@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { api } from './services/api';
 import { usePolling } from './hooks/usePolling';
 
@@ -9,32 +9,39 @@ import { usePolling } from './hooks/usePolling';
 
 function App() {
   const [url, setUrl] = useState('');
-  const [showResults, setShowResults] = useState(false);
-  const [resultData, setResultData] = useState(null);
-  const [systemState, setSystemState] = useState('idle'); // idle | firing | sync | error
   const [errorMessage, setErrorMessage] = useState('');
   const [inputError, setInputError] = useState(false);
+  const [showFinalState, setShowFinalState] = useState(null); // 'sync' | 'error' — se limpia tras timeout
+  const finalTimer = useRef(null);
 
   const { status, result, error, setStatus, startPolling } = usePolling();
 
+  // Limpiar timer al desmontar
+  useEffect(() => () => clearTimeout(finalTimer.current), []);
+
   // ---------------------------------------------------------------------------
-  // Sincronizar hook usePolling → sistema de estados Yuyay
+  // systemState derivado directamente de status + showFinalState
+  // Sin efecto — pura función de props/state
   // ---------------------------------------------------------------------------
 
+  const systemState = useMemo(() => {
+    if (status === 'PENDING' || status === 'PROCESSING') return 'firing';
+    if (showFinalState === 'sync') return 'sync';
+    if (showFinalState === 'error') return 'error';
+    return 'idle';
+  }, [status, showFinalState]);
+
+  // Cuando el polling resuelve a DONE o ERROR, activamos el estado final con timeout
   useEffect(() => {
-    if (status === 'PENDING' || status === 'PROCESSING') {
-      setSystemState('firing');
-    } else if (status === 'DONE' && result) {
-      setResultData(result);
-      setShowResults(true);
-      setSystemState('sync');
-      const t = setTimeout(() => setSystemState('idle'), 2200);
-      return () => clearTimeout(t);
+    if (status === 'DONE' && result) {
+      setShowFinalState('sync');
+      clearTimeout(finalTimer.current);
+      finalTimer.current = setTimeout(() => setShowFinalState(null), 2200);
     } else if (status === 'ERROR') {
-      setSystemState('error');
       if (error) setErrorMessage(error);
-      const t = setTimeout(() => setSystemState('idle'), 1300);
-      return () => clearTimeout(t);
+      setShowFinalState('error');
+      clearTimeout(finalTimer.current);
+      finalTimer.current = setTimeout(() => setShowFinalState(null), 1300);
     }
   }, [status, result, error]);
 
@@ -46,16 +53,16 @@ function App() {
     if (!url.trim()) {
       setInputError(true);
       setErrorMessage('URL vacía. Pega un enlace de YouTube.');
-      setSystemState('error');
-      setTimeout(() => {
-        setSystemState('idle');
+      setShowFinalState('error');
+      clearTimeout(finalTimer.current);
+      finalTimer.current = setTimeout(() => {
+        setShowFinalState(null);
         setInputError(false);
       }, 1300);
       return;
     }
 
-    setShowResults(false);
-    setResultData(null);
+    setShowFinalState(null);
     setErrorMessage('');
     setInputError(false);
 
@@ -71,7 +78,7 @@ function App() {
   }, [url, setStatus, startPolling]);
 
   // ---------------------------------------------------------------------------
-  // Status bar text
+  // Valores derivados
   // ---------------------------------------------------------------------------
 
   const statusLabel = {
@@ -89,6 +96,8 @@ function App() {
   };
 
   const isProcessing = systemState === 'firing';
+  const isError = systemState === 'error';
+  const showResults = systemState === 'sync' && result;
 
   // ---------------------------------------------------------------------------
   // Render
@@ -96,7 +105,6 @@ function App() {
 
   return (
     <>
-      {/* Canvas de fondo — placeholder, Fase 2 */}
       <canvas
         className="fiber-canvas"
         id="fiberCanvas"
@@ -115,7 +123,7 @@ function App() {
 
       <div className="page">
 
-        {/* Header: marca + status */}
+        {/* Header */}
         <header>
           <div className="brand">
             <svg className="brand-icon" viewBox="0 0 180 200">
@@ -126,19 +134,18 @@ function App() {
             </svg>
             <div className="brand-word">Yuyay</div>
           </div>
-
           <div className="status" style={{ color: statusColorVar[systemState] }}>
             <span className="status-dot" />
             <span>{statusLabel[systemState]}</span>
           </div>
         </header>
 
-        {/* Hero: input + CTA */}
+        {/* Hero */}
         <section className="hero">
           <div className="hero-eyebrow">// pensamiento sintetizado</div>
           <h1 className="hero-headline">Pega un enlace. Encuentra la idea.</h1>
 
-          <div className={`input-row ${inputError || systemState === 'error' ? 'is-error' : ''}`}>
+          <div className={`input-row ${inputError || isError ? 'is-error' : ''}`}>
             <input
               type="text"
               placeholder="https://www.youtube.com/watch?v=..."
@@ -155,48 +162,44 @@ function App() {
             </button>
           </div>
 
-          {systemState === 'error' && (
+          {isError && (
             <div className="error-msg show">{errorMessage}</div>
           )}
         </section>
 
-        {/* Results: solo visible tras sincronía */}
+        {/* Results */}
         <section className={`results ${showResults ? 'show' : ''}`}>
-          {resultData && (
+          {showResults && (
             <>
               <div className="results-eyebrow">Resumen_ejecutivo // fuente_verificada</div>
               <h2 className="results-headline">
-                {resultData.video_title || 'Análisis completado'}
+                {result.video_title || 'Análisis completado'}
               </h2>
-
               <div className="cols">
                 <div>
                   <div className="col-label">Núcleo_conceptos</div>
-                  <div className="col-a">{resultData.summary?.main_idea}</div>
+                  <div className="col-a">{result.summary?.main_idea}</div>
                 </div>
                 <div>
                   <div className="col-label">Conclusiones_clave</div>
                   <div className="col-b">
-                    {resultData.summary?.key_points?.map((point, i) => (
+                    {result.summary?.key_points?.map((point, i) => (
                       <div key={i} className="item">{point}</div>
                     ))}
                   </div>
                 </div>
               </div>
-
               <div className="final">
                 <div className="final-label">// resumen_final</div>
-                <div className="final-text">{resultData.summary?.conclusion}</div>
+                <div className="final-text">{result.summary?.conclusion}</div>
               </div>
-
               <div className="sync-note show">
-                // FIBER_SYNC — conclusión estabilizada, {resultData.summary?.key_points?.length || 3} hebras convergentes
+                // FIBER_SYNC — conclusión estabilizada, {result.summary?.key_points?.length || 3} hebras convergentes
               </div>
             </>
           )}
         </section>
 
-        {/* Footer */}
         <footer>Yuyay v0.3 // synapse_edition</footer>
 
       </div>

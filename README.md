@@ -1,6 +1,8 @@
-# YouTube Resumido
+# YUYAY
 
-Aplicación web que recibe una URL de YouTube y devuelve un resumen estructurado en español.
+Aplicación web que recibe una URL de YouTube y devuelve un resumen estructurado en español, artesania,la decisiones de Arquitectura y la seguridad son decisiones 100% humanas,con una supervisión de codigo responsable.
+
+link de la app: https://d1kl02zr5h2zli.cloudfront.net/
 
 ## Documentación
 

@@ -1,70 +1,51 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { api } from './services/api';
 import { usePolling } from './hooks/usePolling';
 
 // =============================================================================
 // App — Yuyay v0.3
-// Orquesta el flujo completo: reposo → disparo → sincronía → reposo.
+// Orquesta el flujo: reposo → disparo → sincronía / error.
+// systemState se deriva de status. Sin efectos intermedios.
 // =============================================================================
 
 function App() {
   const [url, setUrl] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [inputError, setInputError] = useState(false);
-  const [showFinalState, setShowFinalState] = useState(null); // 'sync' | 'error' — se limpia tras timeout
-  const finalTimer = useRef(null);
+
+  // Error local (validación de input) — se limpia solo con timeout
+  const localErrorTimer = useRef(null);
 
   const { status, result, error, setStatus, startPolling } = usePolling();
 
-  // Limpiar timer al desmontar
-  useEffect(() => () => clearTimeout(finalTimer.current), []);
-
   // ---------------------------------------------------------------------------
-  // systemState derivado directamente de status + showFinalState
-  // Sin efecto — pura función de props/state
+  // systemState: derivado puro de status. Sin delay artificial.
   // ---------------------------------------------------------------------------
 
   const systemState = useMemo(() => {
+    if (inputError) return 'error';
     if (status === 'PENDING' || status === 'PROCESSING') return 'firing';
-    if (showFinalState === 'sync') return 'sync';
-    if (showFinalState === 'error') return 'error';
+    if (status === 'DONE') return 'sync';
+    if (status === 'ERROR') return 'error';
     return 'idle';
-  }, [status, showFinalState]);
-
-  // Cuando el polling resuelve a DONE o ERROR, activamos el estado final con timeout
-  useEffect(() => {
-    if (status === 'DONE' && result) {
-      setShowFinalState('sync');
-      clearTimeout(finalTimer.current);
-      finalTimer.current = setTimeout(() => setShowFinalState(null), 2200);
-    } else if (status === 'ERROR') {
-      if (error) setErrorMessage(error);
-      setShowFinalState('error');
-      clearTimeout(finalTimer.current);
-      finalTimer.current = setTimeout(() => setShowFinalState(null), 1300);
-    }
-  }, [status, result, error]);
+  }, [status, inputError]);
 
   // ---------------------------------------------------------------------------
   // Handler — dispara el análisis
   // ---------------------------------------------------------------------------
 
   const handleAnalyze = useCallback(async () => {
+    clearTimeout(localErrorTimer.current);
+
     if (!url.trim()) {
       setInputError(true);
       setErrorMessage('URL vacía. Pega un enlace de YouTube.');
-      setShowFinalState('error');
-      clearTimeout(finalTimer.current);
-      finalTimer.current = setTimeout(() => {
-        setShowFinalState(null);
-        setInputError(false);
-      }, 1300);
+      localErrorTimer.current = setTimeout(() => setInputError(false), 1300);
       return;
     }
 
-    setShowFinalState(null);
-    setErrorMessage('');
     setInputError(false);
+    setErrorMessage('');
 
     try {
       setStatus('PENDING');
@@ -76,6 +57,9 @@ function App() {
       setStatus('ERROR');
     }
   }, [url, setStatus, startPolling]);
+
+  // Error del backend se toma del hook usePolling
+  const displayError = error || errorMessage;
 
   // ---------------------------------------------------------------------------
   // Valores derivados
@@ -145,7 +129,7 @@ function App() {
           <div className="hero-eyebrow">// pensamiento sintetizado</div>
           <h1 className="hero-headline">Pega un enlace. Encuentra la idea.</h1>
 
-          <div className={`input-row ${inputError || isError ? 'is-error' : ''}`}>
+          <div className={`input-row ${isError ? 'is-error' : ''}`}>
             <input
               type="text"
               placeholder="https://www.youtube.com/watch?v=..."
@@ -163,7 +147,7 @@ function App() {
           </div>
 
           {isError && (
-            <div className="error-msg show">{errorMessage}</div>
+            <div className="error-msg show">{displayError}</div>
           )}
         </section>
 

@@ -86,3 +86,9 @@ variable "sqs_jobs_dlq_arn" {
   description = "ARN de la Dead Letter Queue de jobs"
   type        = string
 }
+
+variable "allowed_origin" {
+  description = "Dominio CloudFront autorizado para CORS"
+  type        = string
+  default     = "*"
+}

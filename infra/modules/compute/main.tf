@@ -152,6 +152,7 @@ resource "aws_lambda_function" "analyze" {
       SUBNET_IDS          = var.subnet_ids
       SQS_JOBS_QUEUE_URL  = var.sqs_jobs_queue_url
       SQS_JOBS_QUEUE_NAME = var.sqs_jobs_queue_name
+      ALLOWED_ORIGIN      = var.allowed_origin
     }
   }
 
@@ -183,6 +184,7 @@ resource "aws_lambda_function" "status" {
       ENVIRONMENT    = var.environment
       DYNAMODB_TABLE = var.dynamodb_jobs_table_name
       RESULTS_BUCKET = var.results_bucket_name
+      ALLOWED_ORIGIN = var.allowed_origin
     }
   }
 

@@ -51,11 +51,12 @@ def get_result_from_s3(s3_key: str) -> dict:
 
 
 def _response(status_code: int, body: dict) -> dict:
+    allowed_origin = os.environ.get("ALLOWED_ORIGIN", "*")
     return {
         "statusCode": status_code,
         "headers": {
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": allowed_origin,
         },
         "body": json.dumps(body, ensure_ascii=False),
     }

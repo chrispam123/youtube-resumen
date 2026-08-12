@@ -87,12 +87,13 @@ def publish_to_sqs(job_id: str, video_id: str) -> None:
 
 
 def _response(status_code: int, body: dict) -> dict:
-    """Construye la respuesta HTTP con headers CORS."""
+    """Construye la respuesta HTTP con headers CORS restringidos."""
+    allowed_origin = os.environ.get("ALLOWED_ORIGIN", "*")
     return {
         "statusCode": status_code,
         "headers": {
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": allowed_origin,
         },
         "body": json.dumps(body),
     }

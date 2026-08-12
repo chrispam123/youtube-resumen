@@ -105,5 +105,6 @@ module "compute" {
   sqs_jobs_queue_arn          = module.mensajes.sqs_jobs_queue_arn
   sqs_jobs_queue_name         = module.mensajes.sqs_jobs_queue_name
   sqs_jobs_dlq_arn            = module.mensajes.sqs_jobs_dlq_arn
+  allowed_origin              = "https://${module.networking.cloudfront_domain_name}"
 
 }

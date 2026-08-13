@@ -212,7 +212,8 @@ resource "aws_iam_policy" "dev_write_project" {
           "ec2:AuthorizeSecurityGroupEgress", "ec2:RevokeSecurityGroupEgress",
           "ec2:AuthorizeSecurityGroupIngress", "ec2:RevokeSecurityGroupIngress",
           "ec2:UpdateSecurityGroupRuleDescriptionsEgress",
-          "ec2:UpdateSecurityGroupRuleDescriptionsIngress"
+          "ec2:UpdateSecurityGroupRuleDescriptionsIngress",
+          "ec2:CreateTags", "ec2:DeleteTags"
         ]
         Resource = "*"
       }

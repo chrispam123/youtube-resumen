@@ -32,3 +32,8 @@ output "fargate_execution_role_name" {
   description = "Nombre del rol de ejecución de Fargate (necesario para ECS task definition)"
   value       = aws_iam_role.fargate_execution.name
 }
+
+output "dev_write_policy_version" {
+  description = "Hash del documento de la política — cambia cuando la política cambia"
+  value       = aws_iam_policy.dev_write_project.policy
+}

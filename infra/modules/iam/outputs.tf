@@ -34,6 +34,6 @@ output "fargate_execution_role_name" {
 }
 
 output "dev_write_policy_version" {
-  description = "Version ID de la política de escritura — cambia cuando la política cambia"
-  value       = aws_iam_policy.dev_write_project.version_id
+  description = "Hash del documento de la política — cambia cuando la política cambia"
+  value       = aws_iam_policy.dev_write_project.policy
 }

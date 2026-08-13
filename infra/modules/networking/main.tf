@@ -34,6 +34,15 @@ resource "aws_apigatewayv2_stage" "main" {
   name        = "$default"
   auto_deploy = true
 
+  # Rate limiting — protege contra abuso de quota (Gemini/Supadata son de pago).
+  # rate_limit = peticiones sostenidas por segundo.
+  # burst_limit = ráfaga máxima simultánea.
+  # Valores elegidos para permitir polling cada 3s sin estrangular a usuarios reales.
+  default_route_settings {
+    throttling_burst_limit = var.throttling_burst_limit
+    throttling_rate_limit  = var.throttling_rate_limit
+  }
+
   # Logging de acceso a CloudWatch para debugging
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.api_gateway.arn

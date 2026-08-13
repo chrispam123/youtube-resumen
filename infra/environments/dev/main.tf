@@ -66,6 +66,12 @@ module "iam" {
 resource "time_sleep" "iam_propagation" {
   depends_on      = [module.iam]
   create_duration = "60s"
+
+  # trigger fuerza la recreación (y por tanto la espera) cada vez que
+  # la política IAM cambia. Sin esto, time_sleep solo espera una vez.
+  triggers = {
+    policy_version = module.iam.dev_write_policy_version
+  }
 }
 # Añade al final de infra/environments/dev/main.tf
 

@@ -13,6 +13,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "~> 0.9"
+    }
   }
 
   # Backend remoto — usa los recursos creados en el bootstrap
@@ -55,6 +59,14 @@ module "iam" {
   aws_region       = var.aws_region
   state_bucket_arn = var.state_bucket_arn
 }
+
+# IAM es eventualmente consistente: tras actualizar una política, los permisos
+# tardan unos segundos en propagarse. Sin esta espera, networking y compute
+# fallan con 403 (logs:CreateLogDelivery, apigateway:PATCH, etc).
+resource "time_sleep" "iam_propagation" {
+  depends_on      = [module.iam]
+  create_duration = "60s"
+}
 # Añade al final de infra/environments/dev/main.tf
 
 module "storage" {
@@ -79,9 +91,9 @@ module "networking" {
   frontend_bucket_arn = module.storage.frontend_bucket_arn
 
   # La actualización del stage de API Gateway (rate limiting) necesita que
-  # la política IAM del usuario dev ya esté aplicada. Sin esta dependencia,
-  # Terraform las aplica en paralelo y falla con 403 (apigateway:PATCH).
-  depends_on = [module.iam]
+  # la política IAM del usuario dev ya esté aplicada Y propagada.
+  # time_sleep.iam_propagation espera 60s tras el apply de IAM.
+  depends_on = [time_sleep.iam_propagation]
 }
 
 module "mensajes" {
@@ -113,6 +125,6 @@ module "compute" {
   allowed_origin              = "https://${module.networking.cloudfront_domain_name}"
 
   # El event source mapping (lambda:UntagResource) y la task definition
-  # necesitan que la política IAM del usuario dev ya esté aplicada.
-  depends_on = [module.iam]
+  # necesitan que la política IAM del usuario dev ya esté aplicada Y propagada.
+  depends_on = [time_sleep.iam_propagation]
 }

@@ -66,7 +66,7 @@ data "aws_subnet" "fargate" {
 # pero no hay puerta de entrada — nadie puede conectar a la tarea.
 resource "aws_security_group" "fargate" {
   name        = "${var.project_name}-fargate-sg-${var.environment}"
-  description = "Fargate processor — solo salida HTTPS/DNS, sin inbound"
+  description = "Fargate processor - solo salida HTTPS/DNS, sin inbound"
   vpc_id      = data.aws_subnet.fargate.vpc_id
 
   # No se define bloque 'ingress' → todo el tráfico entrante está bloqueado.

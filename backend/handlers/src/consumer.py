@@ -25,6 +25,7 @@ ecs_client = boto3.client("ecs")
 ECS_CLUSTER = os.environ["ECS_CLUSTER"]
 ECS_TASK_DEFINITION = os.environ["ECS_TASK_DEFINITION"]
 SUBNET_IDS = os.environ["SUBNET_IDS"].split(",")
+SECURITY_GROUP_IDS = os.environ.get("SECURITY_GROUP_IDS", "").split(",")
 
 
 def launch_fargate_task(job_id: str, video_id: str) -> str:
@@ -40,6 +41,9 @@ def launch_fargate_task(job_id: str, video_id: str) -> str:
             "awsvpcConfiguration": {
                 "subnets": SUBNET_IDS,
                 "assignPublicIp": "ENABLED",
+                # Security group SIN inbound: la IP pública permite salida
+                # barata (sin NAT Gateway) pero nadie puede entrar a la tarea.
+                "securityGroups": [sg for sg in SECURITY_GROUP_IDS if sg],
             }
         },
         overrides={

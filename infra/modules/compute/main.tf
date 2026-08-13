@@ -55,6 +55,54 @@ resource "aws_ecs_cluster" "main" {
   }
 }
 
+# VPC ID derivado de la primera subnet — necesario para el security group
+# de Fargate sin tener que añadir una variable nueva.
+data "aws_subnet" "fargate" {
+  id = split(",", var.subnet_ids)[0]
+}
+
+# Security group para Fargate: SIN reglas de entrada (inbound vacío),
+# solo salida HTTPS + DNS. La IP pública existe por coste (sin NAT Gateway),
+# pero no hay puerta de entrada — nadie puede conectar a la tarea.
+resource "aws_security_group" "fargate" {
+  name        = "${var.project_name}-fargate-sg-${var.environment}"
+  description = "Fargate processor — solo salida HTTPS/DNS, sin inbound"
+  vpc_id      = data.aws_subnet.fargate.vpc_id
+
+  # No se define bloque 'ingress' → todo el tráfico entrante está bloqueado.
+
+  # Salida HTTPS: APIs externas (YouTube, Supadata, Gemini) y AWS (ECR, CloudWatch)
+  egress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "HTTPS saliente para APIs y servicios AWS"
+  }
+
+  # Salida DNS: resolución de nombres de dominio
+  egress {
+    from_port   = 53
+    to_port     = 53
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "DNS UDP"
+  }
+
+  egress {
+    from_port   = 53
+    to_port     = 53
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "DNS TCP"
+  }
+
+  tags = {
+    Name        = "${var.project_name}-fargate-sg-${var.environment}"
+    Environment = var.environment
+  }
+}
+
 resource "aws_cloudwatch_log_group" "fargate" {
   name              = "/ecs/${var.project_name}-processor-${var.environment}"
   retention_in_days = 14
@@ -267,6 +315,7 @@ resource "aws_lambda_function" "consumer" {
       ECS_CLUSTER         = aws_ecs_cluster.main.name
       ECS_TASK_DEFINITION = aws_ecs_task_definition.processor.family
       SUBNET_IDS          = var.subnet_ids
+      SECURITY_GROUP_IDS  = aws_security_group.fargate.id
     }
   }
 

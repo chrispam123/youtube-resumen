@@ -200,6 +200,21 @@ resource "aws_iam_policy" "dev_write_project" {
           "cloudfront:TagResource", "cloudfront:UntagResource"
         ]
         Resource = "*"
+      },
+      # ── EC2 — solo security groups para Fargate ─────────────────────
+      {
+        Sid    = "EC2SecurityGroups"
+        Effect = "Allow"
+        Action = [
+          "ec2:CreateSecurityGroup", "ec2:DeleteSecurityGroup",
+          "ec2:DescribeSecurityGroups", "ec2:DescribeVpcs",
+          "ec2:DescribeSubnets",
+          "ec2:AuthorizeSecurityGroupEgress", "ec2:RevokeSecurityGroupEgress",
+          "ec2:AuthorizeSecurityGroupIngress", "ec2:RevokeSecurityGroupIngress",
+          "ec2:UpdateSecurityGroupRuleDescriptionsEgress",
+          "ec2:UpdateSecurityGroupRuleDescriptionsIngress"
+        ]
+        Resource = "*"
       }
     ]
   })
@@ -233,7 +248,8 @@ resource "aws_iam_role_policy" "lambda_execution" {
       { Effect = "Allow", Action = ["s3:GetObject"], Resource = "arn:aws:s3:::${var.project_name}-*/*" },
       { Effect = "Allow", Action = ["sqs:SendMessage", "sqs:ReceiveMessage", "sqs:DeleteMessage", "sqs:GetQueueAttributes"], Resource = "arn:aws:sqs:*:*:${var.project_name}-*" },
       { Effect = "Allow", Action = ["ecs:RunTask"], Resource = "arn:aws:ecs:*:*:task-definition/${var.project_name}-*:*" },
-      { Effect = "Allow", Action = ["iam:PassRole"], Resource = "arn:aws:iam::*:role/${var.project_name}-fargate-execution-*" }
+      { Effect = "Allow", Action = ["iam:PassRole"], Resource = "arn:aws:iam::*:role/${var.project_name}-fargate-execution-*" },
+      { Effect = "Allow", Action = ["ec2:DescribeSecurityGroups", "ec2:DescribeSubnets", "ec2:DescribeVpcs", "ec2:DescribeNetworkInterfaces"], Resource = "*" }
     ]
   })
 }

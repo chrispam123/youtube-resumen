@@ -77,6 +77,11 @@ module "networking" {
   aws_account_id      = data.aws_caller_identity.current.account_id
   frontend_bucket_id  = module.storage.frontend_bucket_id
   frontend_bucket_arn = module.storage.frontend_bucket_arn
+
+  # La actualización del stage de API Gateway (rate limiting) necesita que
+  # la política IAM del usuario dev ya esté aplicada. Sin esta dependencia,
+  # Terraform las aplica en paralelo y falla con 403 (apigateway:PATCH).
+  depends_on = [module.iam]
 }
 
 module "mensajes" {
@@ -107,4 +112,7 @@ module "compute" {
   sqs_jobs_dlq_arn            = module.mensajes.sqs_jobs_dlq_arn
   allowed_origin              = "https://${module.networking.cloudfront_domain_name}"
 
+  # El event source mapping (lambda:UntagResource) y la task definition
+  # necesitan que la política IAM del usuario dev ya esté aplicada.
+  depends_on = [module.iam]
 }

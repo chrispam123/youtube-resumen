@@ -74,7 +74,7 @@ resource "aws_iam_policy" "dev_write_project" {
       {
         Sid    = "APIGatewayProjectAPIs"
         Effect = "Allow"
-        Action = ["apigatewayv2:*"]
+        Action = ["apigateway:*"]
         Resource = [
           "arn:aws:apigateway:*::/apis/*"
         ]
@@ -161,7 +161,8 @@ resource "aws_iam_policy" "dev_write_project" {
         Action = [
           "lambda:CreateEventSourceMapping", "lambda:DeleteEventSourceMapping",
           "lambda:GetEventSourceMapping", "lambda:UpdateEventSourceMapping",
-          "lambda:ListEventSourceMappings"
+          "lambda:ListEventSourceMappings",
+          "lambda:TagResource", "lambda:UntagResource"
         ]
         Resource = "*"
       },

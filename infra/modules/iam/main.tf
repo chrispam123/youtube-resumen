@@ -97,6 +97,20 @@ resource "aws_iam_policy" "dev_write_project" {
           "arn:aws:logs:*:*:log-group:/aws/apigateway/${var.project_name}-*"
         ]
       },
+      # ── Logs Delivery — API Gateway necesita esto para activar access logs ─
+      #   logs:CreateLogDelivery / GetLogDelivery operan sobre Resource *
+      #   (no sobre un log group), por eso van en statement separado.
+      {
+        Sid    = "LogsDelivery"
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogDelivery",
+          "logs:GetLogDelivery",
+          "logs:UpdateLogDelivery",
+          "logs:DeleteLogDelivery"
+        ]
+        Resource = "*"
+      },
       # ── IAM — acciones específicas, scope estricto (NO iam:*) ────────
       {
         Sid    = "IAMProjectRoles"
